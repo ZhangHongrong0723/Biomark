@@ -1,0 +1,48 @@
+#install.packages("glmnet")
+#install.packages("pROC")
+
+
+library(glmnet)
+library(pROC)
+
+expFile="normalize.txt"
+geneFile="15score.csv"
+setwd(path_way)
+
+rt=read.table(expFile, header=T, sep="\t", check.names=F, row.names=1)
+
+y=gsub("(.*)\\_(.*)", "\\2", colnames(rt))
+y=ifelse(y=="Control", 0, 1)
+
+geneRT=read.csv(geneFile, header=T, sep=",", check.names=F)
+colnames(geneRT)=c(colnames(geneRT)[2:ncol(geneRT)], "N")
+#geneRT=geneRT[order(geneRT$Degree, decreasing=T),]
+geneRT=geneRT[order(geneRT$Degree, geneRT$Betweenness, decreasing=c(T,T)),]
+geneRT=geneRT[1:5,]
+9???????Ļ???
+hubGene=cbind(id=row.names(geneRT), geneRT)
+hubGene=hubGene[,c("id","Degree")]
+write.table(hubGene, file="hubGenes.txt", sep="\t", row.names=F, quote=F)
+
+
+bioCol=rainbow(nrow(geneRT), s=0.9, v=0.9)
+
+
+aucText=c()
+rocSigGenes=c()
+k=0
+for(x in row.names(geneRT)){
+	k=k+1
+	roc1=roc(y, as.numeric(rt[x,])) 
+	if(k==1){
+		pdf(file="ROC.genes.pdf", width=6, height=5.5)
+		plot(roc1, print.auc=F, col=bioCol[k], legacy.axes=T, main="")
+		aucText=c(aucText, paste0(x,", AUC=",sprintf("%.3f",roc1$auc[1])))
+	}else{
+		plot(roc1, print.auc=F, col=bioCol[k], legacy.axes=T, main="", add=TRUE)
+		aucText=c(aucText, paste0(x,", AUC=",sprintf("%.3f",roc1$auc[1])))
+	}
+}
+
+legend("bottomright", aucText, lwd=2, bty="n", col=bioCol[1:(ncol(rt)-1)])
+dev.off()

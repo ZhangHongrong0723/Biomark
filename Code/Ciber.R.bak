@@ -1,0 +1,86 @@
+######Video source: https://ke.biowolf.cn
+######??????学??: https://www.biowolf.cn/
+######微?殴??诤牛?biowolf_cn
+######???????洌篵iowolf@foxmail.com
+######????微??: 18520221056
+
+#install.packages("corrplot")
+#install.packages("pheatmap")
+
+
+#???冒?
+library(pheatmap)
+library(corrplot)
+
+inputFile="CIBERSORT-Results.txt"      #????细???????慕????募?
+setwd("F:\\NET_Diabetes\\Test3\\09")     #???霉???目录
+
+#??取????细???????募?
+rt=read.table(inputFile, header=T, sep="\t", check.names=F, row.names=1)
+
+#??取??品?姆?????息(????????实????)
+con=grepl("_Control", rownames(rt), ignore.case=T)     #??????????品
+treat=grepl("_Treat", rownames(rt), ignore.case=T)     #实????????品
+conData=rt[con,]           #??????????细???暮?量
+treatData=rt[treat,]       #实????????细???暮?量
+conNum=nrow(conData)
+treatNum=nrow(treatData)
+data=t(rbind(conData,treatData))
+
+#准??注???募?
+data=data[apply(data,1,sd)>0,]
+Type=c(rep("Control",conNum), rep("Treat",treatNum))
+names(Type)=colnames(data)
+Type=as.data.frame(Type)
+#??????图
+pdf(file="heatmap.pdf", width=7, height=4)
+pheatmap(data, 
+         annotation_col=Type, 
+         color=colorRampPalette(c(rep("blue",3), "white", rep("red",3)))(50),
+         cluster_cols=F,
+         show_colnames=F,
+         scale="row",
+         fontsize = 7,
+         fontsize_row=7,
+         fontsize_col=7)
+dev.off()
+# col2 = colorRampPalette(c('#7F0000', 'red', '#FF7F00', 'yellow', 'white',
+#                           'cyan', '#007FFF', 'blue', '#00007F'))
+#??????????图??
+treatData=treatData[,apply(treatData,2,sd)>0]
+pdf(file="corHeatmap.pdf", width=15, height=15,family ="sans" )
+corrplot(corr=cor(treatData),
+         method = "circle", 
+         type="upper",
+         order = "hclust", 
+         tl.pos = "lt",
+         insig="blank",
+         sig.level = 0.1,
+         pch.cex = 0.7,
+         tl.col="black",
+         tl.cex=1.5,
+         tl.srt = 45,
+         tl.offset=0.5,
+         cl.cex=1.5
+         # number.cex = 0.8,          
+         # addCoef.col = "black",     
+)
+corrplot(
+  corr=cor(treatData),
+  add=TRUE,
+  method="number",
+  type="lower",
+  tl.pos = "n",
+  cl.pos = "n",
+  diag=FALSE ,
+  # col=colorRampPalette(c("#5296cc","#fdedf6","#f064af"))(50),
+)
+dev.off()
+
+
+######Video source: https://ke.biowolf.cn
+######??????学??: https://www.biowolf.cn/
+######微?殴??诤牛?biowolf_cn
+######???????洌篵iowolf@foxmail.com
+######????微??: 18520221056
+
